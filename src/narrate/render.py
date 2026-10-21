@@ -138,7 +138,13 @@ def output(media: Media, ctx: Context) -> Path:
     path = location(media.render, ctx)
     if path.exists() and not (r.stored and ctx.regenerate):
         if not r.stored:
-            path.touch()
+            # A shared cache may contain a readable file owned by another user.
+            # Keeping the cached render is more useful than failing the build
+            # just because its pruning timestamp cannot be refreshed.
+            try:
+                path.touch()
+            except OSError:
+                pass
         return path
     path.parent.mkdir(parents=True, exist_ok=True)
     part = path.with_name(f"{path.stem}.part.png")

@@ -146,6 +146,13 @@ def test_unchanged_blocks_are_rendered_once(tmp_path, monkeypatch):
     assert len(rendered) == 2  # listed (and prunable) by `narrate cache`
 
 
+def test_cached_render_survives_timestamp_refresh_failure(tmp_path, monkeypatch):
+    text = "---\nsize: 320x180\n---\n\n```render:placeholder\nA chart\n```\n"
+    build(tmp_path, text)
+    monkeypatch.setattr(Path, "touch", lambda *_args, **_kwargs: (_ for _ in ()).throw(OSError("read-only")))
+    build(tmp_path, text, "again")
+
+
 def test_the_scenes_theme_is_part_of_the_cache_key(tmp_path, monkeypatch):
     seen = []
     original = render.Placeholder.render

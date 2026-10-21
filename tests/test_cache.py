@@ -54,6 +54,12 @@ def test_a_cache_hit_refreshes_the_entry(root):
     assert SynthCache.load(root / "missing.npy") is None
 
 
+def test_a_cache_hit_survives_timestamp_refresh_failure(root, monkeypatch):
+    path = entry(root, "kokoro", "read-only", 400, 50)
+    monkeypatch.setattr(os, "utime", lambda *_args: (_ for _ in ()).throw(OSError("read-only")))
+    assert SynthCache.load(path) is not None
+
+
 def test_cache_command(root, capsys):
     entry(root, "kokoro", "a", 4000, 20)
     entry(root, "elevenlabs", "b", 4000, 20)

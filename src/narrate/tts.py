@@ -206,7 +206,12 @@ class SynthCache:
             audio = np.load(path)
         except (FileNotFoundError, ValueError, OSError):
             return None
-        os.utime(path)
+        # Refreshing the timestamp is only a pruning hint. A shared cache can
+        # contain files readable by this user but not writable by them.
+        try:
+            os.utime(path)
+        except OSError:
+            pass
         return audio
 
 
